@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilik Aduan</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #eef2f5;
+        }
+
+        header {
+            background: #0b3d91;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 60px);
+            padding: 20px;
+        }
+
+        .card{
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(10px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0b3d91;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, textarea, input[type="file"] {
+            width: 100%;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #0b3d91;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #7a9bd1;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background: #082c6b;
+        }
+
+        .preview img {
+            width: 80px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0b3d91;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    SISTEM BILIK ADUAN
+</header>
+
+<div class="container">
+    <div class="card">
+
+        <h2>Form Aduan</h2>
+
+        <label>Tujuan</label>
+        <select id="target">
+            <option value="varka">Grand Master</option>
+            <option value="jean">Acting Grand Master</option>
+        </select>
+
+        <label>Pesan Aduan</label>
+        <textarea id="message" rows="4" placeholder="Tuliskan aduan Anda..."></textarea>
+
+        <label>Lampiran (wajib)</label>
+        <input type="file" id="files" multiple>
+
+        <div class="preview" id="preview"></div>
+
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAC84VGHaoGzqFDDG"></div>
+
+        <button id="submitBtn" onclick="submitForm()">Kirim Aduan</button>
+
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<script>
+    const supabaseClient = supabase.createClient(
+        "https://bcvcjakqbxajoaimstip.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdmNqYWtxYnhham9haW1zdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNzEwMTgsImV4cCI6MjA5MTY0NzAxOH0.fUrTWU3u8UUhmkT5s-F9lhgHs17t4zRIpL7tTGhVQWI"
+    );
+
+    const fileInput = document.getElementById("files");
+    const preview = document.getElementById("preview");
+    const btn = document.getElementById("submitBtn");
+
+    fileInput.addEventListener("change", () => {
+        preview.innerHTML = "";
+        for (let file of fileInput.files) {
+            if (file.type.startsWith("image")) {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                preview.appendChild(img);
+            }
+        }
+    });
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+
+    async function submitForm() {
+        const target = document.getElementById("target").value;
+        const message = document.getElementById("message").value;
+        const files = fileInput.files;
+        const token = document.querySelector('[name="cf-turnstile-response"]').value;
+
+        if (!token) {
+            showToast("Verifikasi CAPTCHA terlebih dahulu");
+            return;
+        }
+            
+        if (!message) {
+            showToast("Pesan tidak boleh kosong!");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Mengirim...";
+
+        let uploadedUrls = [];
+
+        // Upload files
+        for (let file of files) {
+            const fileName = Date.now() + "-" + file.name;
+
+            const { error } = await supabaseClient.storage
+                .from("complaints")
+                .upload(fileName, file);
+
+            if (error) {
+                showToast("Upload gagal");
+                btn.disabled = false;
+                btn.textContent = "Kirim Aduan";
+                return;
+            }
+
+            const { data } = supabaseClient.storage
+                .from("complaints")
+                .getPublicUrl(fileName);
+
+            uploadedUrls.push(data.publicUrl);
+        }
+
+        await fetch("https://bcvcjakqbxajoaimstip.supabase.co/functions/v1/send-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                target,
+                message,
+                attachments: uploadedUrls,
+                captchaToken: token
+            })
+        });
+
+        showToast("Aduan berhasil dikirim");
+
+        document.getElementById("message").value = "";
+        preview.innerHTML = "";
+        fileInput.value = "";
+
+        btn.disabled = false;
+        btn.textContent = "Kirim Aduan";
+    }
+</script>
+
+</body>
+</html>
