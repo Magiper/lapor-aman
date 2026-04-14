@@ -133,6 +133,9 @@
             <option value="jean">Acting Grand Master</option>
         </select>
 
+        <label>Email (opsional untuk balasan)</label>
+        <input type="email" id="email" placeholder="Masukkan email jika ingin dibalas">
+
         <label>Pesan Aduan</label>
         <textarea id="message" rows="4" placeholder="Tuliskan aduan Anda..."></textarea>
 
@@ -189,6 +192,7 @@
         const message = document.getElementById("message").value;
         const files = fileInput.files;
         const token = document.querySelector('[name="cf-turnstile-response"]').value;
+        const email = document.getElementById("email").value;
 
         if (!token) {
             showToast("Verifikasi CAPTCHA terlebih dahulu");
@@ -236,7 +240,8 @@
                 target,
                 message,
                 attachments: uploadedUrls,
-                captchaToken: token
+                captchaToken: token,
+                email
             })
         });
 
