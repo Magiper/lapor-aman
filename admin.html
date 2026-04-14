@@ -118,6 +118,8 @@
             div.innerHTML = `
                 <p><b>Target:</b> ${item.target}</p>
                 <p>${item.message || ""}</p>
+                <p><b>Email:</b> ${item.email || "-"}</p>
+
                 <div>
                     ${item.attachments?.length
                         ? item.attachments.map(a => `
@@ -128,10 +130,45 @@
                         : "<p>Tidak ada lampiran</p>"
                     }
                 </div>
+
+                <textarea id="reply-${item.id}" placeholder="Tulis balasan..."></textarea>
+                <button onclick="sendReply('${item.id}', '${item.email}')">Kirim Balasan</button>
+
+                ${item.reply ? `<p><b>Balasan:</b> ${item.reply}</p>` : ""}
             `;
-            
+
             container.appendChild(div);
         });
+    }
+
+    async function sendReply(id, email) {
+        if (!email) {
+            alert("User tidak menyertakan email");
+            return;
+        }
+
+        const reply = document.getElementById(`reply-${id}`).value;
+
+        if (!reply) {
+            alert("Balasan kosong");
+            return;
+        }
+
+        await fetch("https://bcvcjakqbxajoaimstip.supabase.co/functions/v1/send-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                replyMode: true,
+                id,
+                email,
+                reply
+            })
+        });
+
+        alert("Balasan terkirim");
+        location.reload();
     }
 </script>
 
