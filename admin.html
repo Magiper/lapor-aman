@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+            padding: 20px;
+        }
+
+        .login, .dashboard {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10p rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #0b3d91;
+            color: white;
+            border: none;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="login" class="login">
+    <h3>Admin Login</h3>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" class="dashboard" style="display: none;">
+    <h3>Dashboard Aduan</h3>
+    <button onclick="logout()">Logout</button>
+    <div id="list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+    const supabaseClient = supabase.createClient(
+        "https://bcvcjakqbxajoaimstip.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdmNqYWtxYnhham9haW1zdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNzEwMTgsImV4cCI6MjA5MTY0NzAxOH0.fUrTWU3u8UUhmkT5s-F9lhgHs17t4zRIpL7tTGhVQWI"
+    );
+
+    // Check session on Load
+    async function checkUser() {
+        const { data } = await supabaseClient.auth.getUser();
+
+        if (data.user) {
+            document.getElementById("login").style.display = "none";
+            document.getElementById("dashboard").style.display = "block";
+            loadData();
+        }
+    }
+
+    checkUser();
+
+    // Login
+    async function login() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const { error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) {
+            alert("Login gagal");
+        } else {
+            location.reload();
+        }
+    }
+
+    // Logout
+    async function logout() {
+        await supabaseClient.auth.signOut();
+        location.reload();
+    }
+
+    // Load data
+    async function loadData() {
+        const { data } = await supabaseClient
+            .from("complaints")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        const container = document.getElementById("list");
+        container.innerHTML = "";
+
+        data.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "card";
+
+            div.innerHTML = `
+                <p><b>Target:</b> ${item.target}</p>
+                <p>${item.attachments?.map(a => `a href="${a}" target="_blank">Lampiran</a>`).join("") || ""}
+            `;
+
+            container.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
