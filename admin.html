@@ -117,9 +117,19 @@
 
             div.innerHTML = `
                 <p><b>Target:</b> ${item.target}</p>
-                <p>${item.attachments?.map(a => `a href="${a}" target="_blank">Lampiran</a>`).join("") || ""}
+                <p>${item.message || ""}</p>
+                <div>
+                    ${item.attachments?.length
+                        ? item.attachments.map(a => `
+                            <p>
+                                🔗 <a href="${a}" target="_blank">Lihat Lampiran</a>
+                            </p>
+                        `).join("")
+                        : "<p>Tidak ada lampiran</p>"
+                    }
+                </div>
             `;
-
+            
             container.appendChild(div);
         });
     }
