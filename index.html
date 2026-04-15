@@ -215,7 +215,7 @@
             const fileName = Date.now() + "-" + cleanName;
 
             const { error } = await supabaseClient.storage
-                .from("complaints")
+                .from("COMPLAINTS")
                 .upload(fileName, file);
 
             if (error) {
@@ -226,7 +226,7 @@
             }
 
             const { data } = supabaseClient.storage
-                .from("complaints")
+                .from("COMPLAINTS")
                 .getPublicUrl(fileName);
 
             uploadedUrls.push(data.publicUrl);
