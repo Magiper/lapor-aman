@@ -212,9 +212,9 @@
         // Upload files
         for (let file of files) {
             const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
-            const fileName = Date.now() + "-" + cleanName;
+            const fileName = `uploads/${Date.now()}-${cleanName}`;
 
-            const { error } = await supabaseClient.storage
+            await supabaseClient.storage
                 .from("complaints")
                 .upload(fileName, file, {
                     cacheControl: "3600",
