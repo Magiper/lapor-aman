@@ -216,7 +216,10 @@
 
             const { error } = await supabaseClient.storage
                 .from("complaints")
-                .upload(fileName, file);
+                .upload(fileName, file, {
+                    cacheControl: "3600",
+                    upsert: false
+                });
 
             if (error) {
                 showToast("Upload gagal");
