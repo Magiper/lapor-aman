@@ -182,81 +182,101 @@
         toast.textContent = msg;
         toast.classList.add("show");
 
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
+        setTimeout(() => toast.classList.remove("show"), 3000);
     }
 
     async function submitForm() {
-        const target = document.getElementById("target").value;
-        const message = document.getElementById("message").value;
-        const files = fileInput.files;
-        const token = document.querySelector('[name="cf-turnstile-response"]').value;
-        const email = document.getElementById("email").value;
+        try {
+            const target = document.getElementById("target").value;
+            const message = document.getElementById("message").value;
+            const files = fileInput.files;
+            const token = document.querySelector('[name="cf-turnstile-response"]').value;
+            const email = document.getElementById("email").value;
 
-        if (!token) {
-            showToast("Verifikasi CAPTCHA terlebih dahulu");
-            return;
-        }
+            if (!token) {
+                showToast("Verifikasi CAPTCHA terlebih dahulu");
+                return;
+            }
             
-        if (!message) {
-            showToast("Pesan tidak boleh kosong!");
-            return;
-        }
+            if (!message) {
+                showToast("Pesan tidak boleh kosong!");
+                return;
+            }
 
-        btn.disabled = true;
-        btn.textContent = "Mengirim...";
+            btn.disabled = true;
+            btn.textContent = "Mengirim...";
 
-        let uploadedUrls = [];
+            let uploadedUrls = [];
 
-        // Upload files
-        for (let file of files) {
-            const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
-            const fileName = `uploads/${Date.now()}-${cleanName}`;
+            // Upload files
+            for (let file of files) {
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+                const fileName = `uploads/${Date.now()}-${cleanName}`;
 
-            await supabaseClient.storage
-                .from("complaints")
-                .upload(fileName, file, {
-                    cacheControl: "3600",
-                    upsert: false
-                });
+                const { data, error } = await supabaseClient.storage
+                    .from("complaints")
+                    .upload(fileName, file);
 
-            if (error) {
-                showToast("Upload gagal");
+                if (error) {
+                    console.log("UPLOAD ERROR:", error);
+                    showToast("Upload gagal: " + error.message);
+                    btn.disabled = false;
+                    btn.textContent = "Kirim Aduan";
+                    return;
+                }
+
+                const { data: publicData } = supabaseClient.storage
+                    .from("complaints")
+                    .getPublicUrl(fileName);
+
+                uploadedUrls.push(publicData.publicUrl);
+            };
+
+            // FIXED FETCH + TIMEOUT
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 10000);
+
+            const res = await fetch("https://bcvcjakqbxajoaimstip.supabase.co/functions/v1/send-email", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    target,
+                    message,
+                    attachments: uploadedUrls,
+                    captchaToken: token,
+                    email
+                }),
+                signal: controller.signal
+            });
+
+            const text = await res.text();
+            console.log("RESPONSE:", text);
+
+            if (!res.ok) {
+                showToast("Gagal kirim aduan");
                 btn.disabled = false;
                 btn.textContent = "Kirim Aduan";
                 return;
             }
 
-            const { data } = supabaseClient.storage
-                .from("complaints")
-                .getPublicUrl(fileName);
+            // ONLY SUCCESS HERE
+            showToast("Aduan berhasil dikirim");
 
-            uploadedUrls.push(data.publicUrl);
+            document.getElementById("message").value = "";
+            preview.innerHTML = "";
+            fileInput.value = "";
+
+            btn.disabled = false;
+            btn.textContent = "Kirim Aduan";
+
+        } catch (err) {
+            console.error("ERROR:", err);
+            showToast("Terjadi error sistem");
+            btn.disabled = false;
+            btn.textContent = "Kirim Aduan";
         }
-
-        await fetch("https://bcvcjakqbxajoaimstip.supabase.co/functions/v1/send-email", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                target,
-                message,
-                attachments: uploadedUrls,
-                captchaToken: token,
-                email
-            })
-        });
-
-        showToast("Aduan berhasil dikirim");
-
-        document.getElementById("message").value = "";
-        preview.innerHTML = "";
-        fileInput.value = "";
-
-        btn.disabled = false;
-        btn.textContent = "Kirim Aduan";
     }
 </script>
 
