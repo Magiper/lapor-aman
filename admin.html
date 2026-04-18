@@ -11,27 +11,12 @@
             padding: 20px;
         }
 
-        .login, .dashboard {
-            max-width: 400px;
+        .box {
+            max-width: 500px;
             margin: auto;
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 10p rgba(0, 0, 0, 0.1);
-        }
-
-        input {
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 10px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #0b3d91;
-            color: white;
-            border: none;
         }
 
         .card {
@@ -45,25 +30,28 @@
 
 <body>
 
-<div id="login" class="login">
+<div id="login" class="box">
     <h3>Admin Login</h3>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
+    <input id="email" placeholder="Email"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
     <button onclick="login()">Login</button>
 </div>
 
-<div id="dashboard" class="dashboard" style="display: none;">
+<div id="dashboard" class="box" style="display: none;">
     <h3>Dashboard Aduan</h3>
     <button onclick="logout()">Logout</button>
     <div id="list"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <script>
     const supabaseClient = supabase.createClient(
-        "https://bcvcjakqbxajoaimstip.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdmNqYWtxYnhham9haW1zdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNzEwMTgsImV4cCI6MjA5MTY0NzAxOH0.fUrTWU3u8UUhmkT5s-F9lhgHs17t4zRIpL7tTGhVQWI"
+        "https://cejrgbgpugcdstlwiptr.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlanJnYmdwdWdjZHN0bHdpcHRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjYwODcsImV4cCI6MjA5MjEwMjA4N30.UIZtSd6D_g7s7gARnnpy56W066iejzq8DajUviR5SA4"
     );
+
+    checkUser();
 
     // Check session on Load
     async function checkUser() {
@@ -76,23 +64,17 @@
         }
     }
 
-    checkUser();
-
     // Login
     async function login() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
         const { error } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password
+            email, password
         });
 
-        if (error) {
-            alert("Login gagal");
-        } else {
-            location.reload();
-        }
+        if (error) alert("Login gagal");
+        else location.reload();
     }
 
     // Logout
@@ -117,58 +99,19 @@
 
             div.innerHTML = `
                 <p><b>Target:</b> ${item.target}</p>
-                <p>${item.message || ""}</p>
-                <p><b>Email:</b> ${item.email || "-"}</p>
+                <p>${item.message}</p>
+                <p><b>Email:</b> ${item.sender_email || "-"}</p>
+                <p><b>Waktu:</b> ${new Date(item.created_at).toLocaleString()}</p>
 
-                <div>
-                    ${item.attachments?.length
-                        ? item.attachments.map(a => `
-                            <p>
-                                🔗 <a href="${a}" target="_blank">Lihat Lampiran</a>
-                            </p>
-                        `).join("")
-                        : "<p>Tidak ada lampiran</p>"
-                    }
-                </div>
-
-                <textarea id="reply-${item.id}" placeholder="Tulis balasan..."></textarea>
-                <button onclick="sendReply('${item.id}', '${item.email}')">Kirim Balasan</button>
-
-                ${item.reply ? `<p><b>Balasan:</b> ${item.reply}</p>` : ""}
+                <p>
+                    <a href="https://cejrgbgpugcdstlwiptr.supabase.co/functions/v1/submit-complaint/get-file?path=${item.file_url}" target="_blank">
+                        Lihat Lampiran
+                    </a>
+                </p>
             `;
 
             container.appendChild(div);
         });
-    }
-
-    async function sendReply(id, email) {
-        if (!email) {
-            alert("User tidak menyertakan email");
-            return;
-        }
-
-        const reply = document.getElementById(`reply-${id}`).value;
-
-        if (!reply) {
-            alert("Balasan kosong");
-            return;
-        }
-
-        await fetch("https://bcvcjakqbxajoaimstip.supabase.co/functions/v1/send-email", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                replyMode: true,
-                id,
-                email,
-                reply
-            })
-        });
-
-        alert("Balasan terkirim");
-        location.reload();
     }
 </script>
 
