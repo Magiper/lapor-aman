@@ -74,7 +74,11 @@
 
         <div class="preview" id="preview"></div>
 
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAAC84VGHaoGzqFDDG"></div>
+        <div
+            class="cf-turnstile"
+            data-sitekey="0x4AAAAAAC84VGHaoGzqFDDG"
+            data-callback="onCaptchaSuccess"
+        ></div>
 
         <button id="submitBtn" onclick="submitForm()">Kirim Aduan</button>
 
@@ -88,6 +92,13 @@
     const fileInput = document.getElementById("file");
     const preview = document.getElementById("preview");
     const btn = document.getElementById("submitBtn");
+
+    let captchaToken = null;
+
+    function onCaptchaSuccess(token) {
+        console.log("Captcha success:", token);
+        captchaToken = token;
+    }
 
     fileInput.addEventListener("change", () => {
         preview.innerHTML = "";
@@ -106,12 +117,12 @@
         const target = document.getElementById("target").value;
         const message = document.getElementById("message").value;
         const files = fileInput.files;
-        const token = document.querySelector('[name="cf-turnstile-response"]').value;
+        const token = captchaToken;
         const email = document.getElementById("sender_email").value;
 
         if (!message) return alert("Pesan wajib diisi");
         if (!files.length) return alert("Lampiran wajib ada");
-        if (!token) return alert("Selesaikan CAPTCHA");         
+        if (!token) return alert("Captcha belum siap, tunggu sebentar lalu coba lagi");         
             
         // basic validation
         for (let file of files) {
