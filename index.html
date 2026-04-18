@@ -106,14 +106,12 @@
         const target = document.getElementById("target").value;
         const message = document.getElementById("message").value;
         const files = fileInput.files;
-        const token = document.querySelector('textarea[name="cf-turnstile-response"]')?.value;
+        const token = document.querySelector('[name="cf-turnstile-response"]').value;
         const email = document.getElementById("sender_email").value;
 
         if (!message) return alert("Pesan wajib diisi");
         if (!files.length) return alert("Lampiran wajib ada");
-        if (!token || token.length < 10) {
-            return alert("Selesaikan CAPTCHA");  
-        }
+        if (!token) return alert("Selesaikan CAPTCHA");         
             
         // basic validation
         for (let file of files) {
