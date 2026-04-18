@@ -8,16 +8,18 @@
     <style>
         body {
             margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #eef2f5;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: #f5f7fb;
         }
 
         header {
-            background: #0b3d91;
+            background: linear-gradient(135deg, #0b3d91, #1e5edb);
             color: white;
-            padding: 15px;
+            padding: 18px;
             text-align: center;
-            font-weight: bold;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .container {
@@ -25,6 +27,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 20px;
         }
 
         .card{
@@ -35,12 +38,60 @@
             border-radius: 10px;
         }
 
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #0b3d91;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, textarea, input {
+            width: 100%;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid #dcdfe6;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        select:focus, textarea:focus, input:focus {
+            outline: none;
+            border-color: #1e5edb;
+            box-shadow: 0 0 0 2px rgba(30,94,219,0.15);
+        }
+
+        textarea {
+            resize: none;
+        }
+
         button {
             width: 100%;
-            padding: 12px;
-            background: #0b3d91;
+            padding: 13px;
+            background: linear-gradient(135deg, #0b3d91, #1e5edb);
             color: white;
             border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
         }
 
         .preview img {
@@ -53,6 +104,9 @@
 <body>
 
 <header>SISTEM BILIK ADUAN</header>
+<p style="text-align:center; font-size:13px; color:#666;">
+    Sampaikan aduan Anda secara aman dan anonim
+</p>
 
 <div class="container">
     <div class="card">
