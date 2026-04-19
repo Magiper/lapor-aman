@@ -117,6 +117,8 @@
         </div>
         
         <div id="list"></div>
+
+        <div id="pagination" style="text-align:center; margin-top:20px;"></div>
     </div>
 </div>
 
@@ -161,11 +163,18 @@
     }
 
     // Load data
+    let currentPage = 1;
+    const pageSize = 5;
+
     async function loadData() {
+        const from = (currentPage - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const { data } = await supabaseClient
             .from("complaints")
             .select("*")
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .range(from, to);
 
         const container = document.getElementById("list");
         container.innerHTML = "";
@@ -199,11 +208,41 @@
                 </div>
 
                 ${filesHTML}
+
+                ${item.sender_email ? `
+                    <textarea id="reply-${item.id}" placeholder="Tulis balasan..."></textarea>
+                    <button onclick="sendReply('${item.id}', '${item.sender_email}')">Kirim Balasan</button>
+                ` : `<div class="meta">Tidak bisa dibalas (anonim)</div>`}
             `;
 
             container.appendChild(div);
         });
+
+        renderPagination();
     }
+
+    function renderPagination() {
+        const container = document.getElementById("pagination");
+
+        container.innerHTML = `
+            <button onclick="prevPage()">←</button>
+            <span style="margin: 0 10px;">Page ${currentPage}</span>
+            <button onclick="nextPage()">→</button>
+        `;
+    }
+
+    function nextPage() {
+        currentPage++;
+        loadData();
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            loadData();
+        }
+    }
+    
 </script>
 
 </body>
