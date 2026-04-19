@@ -6,41 +6,118 @@
 
     <style>
         body {
-            font-family: Arial;
-            background: #f4f6f8;
-            padding: 20px;
+            margin: 0;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: #f5f7fb;
         }
 
-        .box {
-            max-width: 500px;
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, #0b3d91, #2563eb);
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 800px;
             margin: auto;
+            padding: 30px 20px;
+        }
+
+        /* LOGIN BOX */
+        .box {
             background: white;
-            padding: 20px;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        /* INPUT */
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
             border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* BUTTON */
+        button {
+            padding: 12px;
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* DASHBOARD HEADER */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
         .card {
             background: white;
-            padding: 15px;
-            margin-top: 10px;
-            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            margin: 10px 0;
+        }
+
+        .file a {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .empty {
+            text-align: center;
+            color: #888;
+            margin-top: 40px;
         }
     </style>
 </head>
 
 <body>
 
-<div id="login" class="box">
-    <h3>Admin Login</h3>
-    <input id="email" placeholder="Email"><br><br>
-    <input id="password" type="password" placeholder="Password"><br><br>
-    <button onclick="login()">Login</button>
-</div>
+<header>ADMIN BILIK ADUAN</header>
+<div class="container">
+    <!-- LOGIN -->>
+    <div id="login" class="box">
+        <h3>Admin Login</h3>
+        <input id="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
 
-<div id="dashboard" class="box" style="display: none;">
-    <h3>Dashboard Aduan</h3>
-    <button onclick="logout()">Logout</button>
-    <div id="list"></div>
+    <!-- DASHBOARD -->
+    <div id="dashboard" style="display: none;">
+        <div class="topbar">
+            <h3>Daftar Aduan</h3>
+            <button onclick="logout()" style="width:auto;">Logout</button>
+        </div>
+        
+        <div id="list"></div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
@@ -93,21 +170,35 @@
         const container = document.getElementById("list");
         container.innerHTML = "";
 
+        if (!data || data.length === 0) {
+            container.innerHTML = `<div class="empty">Belum ada aduan</div>`;
+            return;
+        }
+
         data.forEach(item => {
             const div = document.createElement("div");
             div.className = "card";
 
-            div.innerHTML = `
-                <p><b>Target:</b> ${item.target}</p>
-                <p>${item.message}</p>
-                <p><b>Email:</b> ${item.sender_email || "-"}</p>
-                <p><b>Waktu:</b> ${new Date(item.created_at).toLocaleString()}</p>
-
-                <p>
-                    <a href="https://cejrgbgpugcdstlwiptr.supabase.co/functions/v1/submit-complaint/get-file?path=${item.file_url}" target="_blank">
+            const filesHTML = (item.files || []).map(path => `
+                <div class="file">
+                    🔗 <a href="https://cejrgbgpugcdstlwiptr.supabase.co/functions/v1/get-file?path=${path}" target="_blank">
                         Lihat Lampiran
                     </a>
-                </p>
+                </div>
+            `).join("");
+
+            div.innerHTML = `
+                <div class="meta">
+                    ${new Date(item.created_at).toLocaleString()} • ${item.target}
+                </div>
+
+                <div class="message">${item.message}</div>
+
+                <div class="meta">
+                    Email: ${item.sender_email || "Anonim"}
+                </div>
+
+                ${filesHTML}
             `;
 
             container.appendChild(div);
