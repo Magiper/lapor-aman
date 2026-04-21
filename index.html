@@ -126,10 +126,6 @@
             <option value="Manager">Manager</option>
         </select>
 
-        <label>Email (opsional untuk balasan)</label>
-        <input type="email" id="sender_email" placeholder="Masukkan email jika ingin dibalas">
-        <textarea id="message" placeholder="Pesan aduan"></textarea>
-
         <label>Lampiran (wajib)</label>
         <input type="file" id="file" multiple>
 
@@ -164,7 +160,6 @@
         const target = document.getElementById("target").value;
         const message = document.getElementById("message").value;
         const files = fileInput.files;
-        const email = document.getElementById("sender_email").value;
 
         if (!message) return alert("Pesan wajib diisi");
         if (!files.length) return alert("Lampiran wajib ada");
@@ -183,7 +178,6 @@
         const formData = new FormData();
         formData.append("target", target);
         formData.append("message", message);
-        formData.append("sender_email", email);
 
         // append ALL files
         for (let file of files) {
@@ -206,7 +200,6 @@
             alert("Aduan berhasil dikirim");
 
             document.getElementById("message").value = "";
-            document.getElementById("sender_email").value = "";
             fileInput.value = "";
             preview.innerHTML = "";
 
