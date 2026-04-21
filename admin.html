@@ -213,42 +213,16 @@
                 <div class="message">${item.message}</div>
 
                 <div class="meta">
-                    Email: ${item.sender_email || "Anonim"}
+                    Email: ${item.sender_email ? "User menyertakan email" : "Anonim"}
                 </div>
 
                 ${filesHTML}
-
-                ${item.sender_email ? `
-                    <textarea id="reply-${item.id}" placeholder="Tulis balasan..."></textarea>
-                    <button onclick="sendReply('${item.id}', '${item.sender_email}')">Kirim Balasan</button>
-                ` : `<div class="meta">Tidak bisa dibalas (anonim)</div>`}
             `;
 
             container.appendChild(div);
         });
 
         renderPagination();
-    }
-
-    async function sendReply(id, email) {
-        const message = document.getElementById(`reply-${id}`).value;
-
-        if (!message) return alert("Balasan kosong");
-
-        const res = await fetch("https://cejrgbgpugcdstlwiptr.supabase.co/functions/v1/send-reply", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, message })
-        });
-
-        if (!res.ok) {
-            alert("Gagal kirim balasan");
-            return;
-        }
-
-        alert("Balasan terkirim");
     }
 
     function renderPagination() {
