@@ -55,6 +55,14 @@
             cursor: pointer;
         }
 
+        textarea {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
         /* DASHBOARD HEADER */
         .topbar {
             display: flex;
@@ -94,6 +102,7 @@
             color: #888;
             margin-top: 40px;
         }
+
     </style>
 </head>
 
@@ -221,6 +230,27 @@
         renderPagination();
     }
 
+    async function sendReply(id, email) {
+        const message = document.getElementById(`reply-${id}`).value;
+
+        if (!message) return alert("Balasan kosong");
+
+        const res = await fetch("https://cejrgbgpugcdstlwiptr.supabase.co/functions/v1/send-reply", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, message })
+        });
+
+        if (!res.ok) {
+            alert("Gagal kirim balasan");
+            return;
+        }
+
+        alert("Balasan terkirim");
+    }
+
     function renderPagination() {
         const container = document.getElementById("pagination");
 
@@ -242,7 +272,7 @@
             loadData();
         }
     }
-    
+
 </script>
 
 </body>
